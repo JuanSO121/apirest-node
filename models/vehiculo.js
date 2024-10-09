@@ -1,6 +1,8 @@
 const { DataTypes } = require('sequelize');
 const { bdmysql } = require('../database/MariaDbConnection');
 
+require('dotenv').config();
+
 const Vehiculo = bdmysql.define('Vehiculo', {
     id_vehiculo: {
         type: DataTypes.INTEGER,

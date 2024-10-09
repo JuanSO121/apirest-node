@@ -1,14 +1,17 @@
-const express = require('express');
-const cors = require('cors');
-const { bdmysql } = require('../database/MariaDbConnection');
+import express from 'express';
+import cors from 'cors';
+import { bdmysql } from '../database/MariaDbConnection';  // Conexión MySQL
+import dbMongo from '../database/MongoDbConnection';      // Conexión MongoDB
+require('dotenv').config();
+
 
 class Server {
     constructor() {
         this.app = express();
-        this.port = process.env.PORT;
+        this.port = process.env.PORT || 3000;  // Asegúrate de definir un puerto por defecto
         this.token = process.env.SECRETORPRIVATEKEY;
 
-        // Definir los paths para cada recurso
+        // Paths de MySQL (puedes añadir paths específicos para Mongo si es necesario)
         this.pathsMySql = {
             auth: '/api/auth',
             prueba: '/api/prueba',
@@ -21,20 +24,16 @@ class Server {
             tipos_ciudades: '/api/tipos_ciudades',
             ciudades_viajes: '/api/ciudades_viajes',
             usuarios_viajes: '/api/usuarios_viajes',
-        }
+        };
 
-        // Respuesta por defecto en la raíz
-        this.app.get('/', function (req, res) {
-            res.send('Hola Mundo a todos...')
-        });
+        // Conexiones a las bases de datos
+        this.dbConnection();       // Conectar a MySQL
+        this.dbConnectionMongo();  // Conectar a MongoDB
 
-        // Conectar a la base de datos
-        this.dbConnection();
-
-        // Configurar middlewares
+        // Middlewares
         this.middlewares();
 
-        // Configurar rutas
+        // Rutas
         this.routes();
     }
 
@@ -47,8 +46,17 @@ class Server {
         }
     }
 
+    async dbConnectionMongo() {
+        try {
+            await dbMongo();
+            console.log('Connection OK a Mongo.');
+        } catch (error) {
+            console.error('Error al conectar a MongoDB:', error);
+        }
+    }
+
     middlewares() {
-        // Configurar CORS
+        // Configuración de CORS
         this.app.use(cors());
 
         // Parseo y lectura del body en formato JSON
@@ -59,7 +67,7 @@ class Server {
     }
 
     routes() {
-        // Registrar las rutas para cada recurso
+        // Registrar las rutas para MySQL
         this.app.use(this.pathsMySql.personas, require('../routes/personasRoutes'));
         this.app.use(this.pathsMySql.usuarios, require('../routes/usuariosRoutes'));
         this.app.use(this.pathsMySql.vehiculos, require('../routes/vehiculosRoutes'));
