@@ -1,51 +1,48 @@
-const { DataTypes } = require('sequelize');
-// const { bdmysql } = require('../database/MySqlConnection');
-const { bdmysql } = require('../database/MariaDbConnection');
+import { DataTypes } from 'sequelize';
+import { bdmysql } from '../database/MariaDbConnection';
 
-const Personas = bdmysql.define('persona',
+
+const system_state = bdmysql.define('system_state',
     {
         // Model attributes are defined here
-        'id_persona': {
-            type: DataTypes.INTEGER,
-            //allowNull: false,
-            primaryKey: true,
-            autoIncrement: true
+        'countryid': {
+            type: DataTypes.STRING,
+            allowNull: false,
+            primaryKey: true
         },
 
-
-        'nombres': {
+        'stateid': {
+            type: DataTypes.STRING,
+            allowNull: false,
+            primaryKey: true
+            // allowNull defaults to true
+        },
+        'name': {
             type: DataTypes.STRING,
             allowNull: false
             // allowNull defaults to true
         },
-        'apellidos': {
+        'optionsStatus': {
             type: DataTypes.STRING,
             allowNull: false
-            // allowNull defaults to true
-        },
-        'fecha_nacimiento': {
-            type: DataTypes.DATE
+
             // allowNull defaults to true
         },
     },
-
 
     {
         //Maintain table name don't plurilize
         freezeTableName: true,
 
-
         // I don't want createdAt
         createdAt: false,
-
 
         // I don't want updatedAt
         updatedAt: false
     }
 );
 
-
-
-module.exports = {
-    Personas,
+export default {
+    system_state
 }
+

@@ -1,9 +1,9 @@
-// apirest-node\app.js
 const express = require('express');
 const cors = require('cors');
-const { bdmysql } = require('./database/MariaDbConnection');
-const { dbMongo } = require('./database/MongoDbConnection');  // Importar la conexión a MongoDB
 require('dotenv').config();
+
+const { dbMongo } = require('./database/MongoDbConnection');
+const { connectNeo4j, closeNeo4jConnection } = require('./database/Neo4jConnection');
 
 // Inicializar la app
 const app = express();
@@ -12,28 +12,65 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conectar a la base de datos MySQL
-bdmysql.authenticate()
-  .then(() => console.log('Conexión exitosa a la base de datos MySQL'))
-  .catch(err => console.error('No se pudo conectar a la base de datos MySQL:', err));
+// Conectar a MongoDB
+(async () => {
+  try {
+    await dbMongo();
+    console.log('Conexión exitosa a MongoDB.');
+  } catch (err) {
+    console.error('Error al conectar a MongoDB:', err);
+  }
+})();
 
-// Conectar a la base de datos MongoDB
-dbMongo()
-  .then(() => console.log('Conexión exitosa a MongoDB'))
-  .catch(err => console.error('No se pudo conectar a la base de datos MongoDB:', err));
-
-// Importar las rutas
-const personasRoutes = require('./routes/personasRoutes');
-const usuariosRoutes = require('./routes/usuariosRoutes');
-const vehiculosRoutes = require('./routes/vehiculosRoutes');
+// Conectar a Neo4j
+(async () => {
+  try {
+    await connectNeo4j();
+    console.log('Conexión exitosa a Neo4j.');
+  } catch (err) {
+    console.error('Error al conectar a Neo4j:', err);
+  }
+})();
 
 // Rutas de la API
-app.use('/api/personas', personasRoutes);
-app.use('/api/usuarios', usuariosRoutes);
-app.use('/api/vehiculos', vehiculosRoutes);
+try {
+  const routes = {
+    personas: require('./routes/personasRoutes'),
+    usuarios: require('./routes/usuariosRoutes'),
+    vehiculos: require('./routes/vehiculosRoutes'),
+    equipos: require('./routes/equipos'),
+    futbolistas: require('./routes/futbolistas'),
+    contrataciones: require('./routes/contrataciones'),
+    neo4j: require('./routes/neo4jRoutes'),
+  };
+
+  app.use('/api/personas', routes.personas);
+  app.use('/api/usuarios', routes.usuarios);
+  app.use('/api/vehiculos', routes.vehiculos);
+  app.use('/api/equipos', routes.equipos);
+  app.use('/api/futbolistas', routes.futbolistas);
+  app.use('/api/contrataciones', routes.contrataciones);
+  app.use('/api/neo4j', routes.neo4j);
+} catch (err) {
+  console.error('Error al cargar rutas:', err);
+}
+
+// Cerrar conexiones al detener el servidor
+process.on('SIGINT', async () => {
+  try {
+    await closeNeo4jConnection();
+    console.log('Conexión a Neo4j cerrada.');
+  } catch (err) {
+    console.error('Error al cerrar la conexión a Neo4j:', err);
+  } finally {
+    process.exit();
+  }
+});
 
 // Iniciar el servidor
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+app.listen(PORT,  () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
+}
+);
+

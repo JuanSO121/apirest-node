@@ -2,33 +2,31 @@ import express from 'express';
 import cors from 'cors';
 import { bdmysql } from '../database/MariaDbConnection';  // Conexión MySQL
 import dbMongo from '../database/MongoDbConnection';      // Conexión MongoDB
-require('dotenv').config();
+import { connectNeo4j, closeNeo4jConnection } from '../database/Neo4jConnection'; // Conexión Neo4j
 
+require('dotenv').config();
 
 class Server {
     constructor() {
         this.app = express();
-        this.port = process.env.PORT || 3000;  // Asegúrate de definir un puerto por defecto
+        this.port = process.env.PORT || 3000; // Puerto predeterminado
         this.token = process.env.SECRETORPRIVATEKEY;
 
-        // Paths de MySQL (puedes añadir paths específicos para Mongo si es necesario)
-        this.pathsMySql = {
+        // Paths para las APIs
+        this.paths = {
             auth: '/api/auth',
             prueba: '/api/prueba',
             personas: '/api/personas',
             usuarios: '/api/usuarios',
             vehiculos: '/api/vehiculos',
-            viajes: '/api/viajes',
-            calificaciones: '/api/calificaciones',
-            ciudades: '/api/ciudades',
-            tipos_ciudades: '/api/tipos_ciudades',
-            ciudades_viajes: '/api/ciudades_viajes',
-            usuarios_viajes: '/api/usuarios_viajes',
+            futbolistas: '/api/futbolistas',
+            equipos: '/api/equipos',
+            contrataciones: '/api/contrataciones',
+            neo4j: '/api/neo4j', // Ruta para operaciones específicas de Neo4j
         };
 
-        // Conexiones a las bases de datos
-        this.dbConnection();       // Conectar a MySQL
-        this.dbConnectionMongo();  // Conectar a MongoDB
+        // Conexiones a bases de datos
+        this.initDatabaseConnections();
 
         // Middlewares
         this.middlewares();
@@ -37,24 +35,58 @@ class Server {
         this.routes();
     }
 
-    async dbConnection() {
+    // Método para inicializar las conexiones a las bases de datos
+    async initDatabaseConnections() {
         try {
-            await bdmysql.authenticate();
-            console.log('Connection OK a MySQL.');
+            await this.dbConnectionMySQL();
+            await this.dbConnectionMongo();
+            await this.dbConnectionNeo4j(); // Conexión a Neo4j
         } catch (error) {
-            console.error('No se pudo Conectar a la BD MySQL', error);
+            console.error('Error al iniciar las conexiones:', error);
         }
     }
 
+    // Conexión a MySQL
+    async dbConnectionMySQL() {
+        try {
+            await bdmysql.authenticate();
+            console.log('Conexión exitosa a MySQL.');
+        } catch (error) {
+            console.error('No se pudo conectar a MySQL:', error);
+        }
+    }
+
+    // Conexión a MongoDB
     async dbConnectionMongo() {
         try {
             await dbMongo();
-            console.log('Connection OK a Mongo.');
+            console.log('Conexión exitosa a MongoDB.');
         } catch (error) {
             console.error('Error al conectar a MongoDB:', error);
         }
     }
 
+    // Conexión a Neo4j
+    async dbConnectionNeo4j() {
+        try {
+            await connectNeo4j();
+            console.log('Conexión exitosa a Neo4j.');
+        } catch (error) {
+            console.error('Error al conectar a Neo4j:', error);
+        }
+    }
+
+    // Cerrar conexiones al detener el servidor
+    async stop() {
+        try {
+            await closeNeo4jConnection();
+            console.log('Conexión a Neo4j cerrada.');
+        } catch (error) {
+            console.error('Error al cerrar la conexión a Neo4j:', error);
+        }
+    }
+
+    // Configuración de middlewares
     middlewares() {
         // Configuración de CORS
         this.app.use(cors());
@@ -66,23 +98,24 @@ class Server {
         this.app.use(express.static('public'));
     }
 
+    // Registro de rutas
     routes() {
-        // Registrar las rutas para MySQL
-        this.app.use(this.pathsMySql.personas, require('../routes/personasRoutes'));
-        this.app.use(this.pathsMySql.usuarios, require('../routes/usuariosRoutes'));
-        this.app.use(this.pathsMySql.vehiculos, require('../routes/vehiculosRoutes'));
-        this.app.use(this.pathsMySql.prueba, require('../routes/prueba'));
-        this.app.use(this.pathsMySql.viajes, require('../routes/viajeRoutes'));
-        this.app.use(this.pathsMySql.calificaciones, require('../routes/calificacionRoutes'));
-        this.app.use(this.pathsMySql.ciudades, require('../routes/ciudadRoutes'));
-        this.app.use(this.pathsMySql.tipos_ciudades, require('../routes/tipoCiudadRoutes'));
-        this.app.use(this.pathsMySql.ciudades_viajes, require('../routes/ciudadesViajeRoutes'));
-        this.app.use(this.pathsMySql.usuarios_viajes, require('../routes/usuariosViajeRoutes'));
+        this.app.use(this.paths.personas, require('../routes/personasRoutes'));
+        this.app.use(this.paths.usuarios, require('../routes/usuariosRoutes'));
+        this.app.use(this.paths.vehiculos, require('../routes/vehiculosRoutes'));
+        this.app.use(this.paths.prueba, require('../routes/prueba'));
+        this.app.use(this.paths.futbolistas, require('../routes/futbolistas'));
+        this.app.use(this.paths.equipos, require('../routes/equipos'));
+        this.app.use(this.paths.contrataciones, require('../routes/contrataciones'));
+
+        // Rutas para Neo4j
+        this.app.use(this.paths.neo4j, require('../routes/neo4jRoutes').default);
     }
 
+    // Método para iniciar el servidor
     listen() {
         this.app.listen(this.port, () => {
-            console.log('Servidor corriendo en puerto', this.port);
+            console.log('Servidor corriendo en el puerto', this.port);
         });
     }
 }

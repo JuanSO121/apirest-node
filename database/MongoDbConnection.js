@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const dbMongo = async() => {
     try {
-        await mongoose.connect(process.env.MONGODB_CNN);
+        await mongoose.connect(process.env.MONGODB_node);
         console.log('Conexión exitosa a MongoDB');
     } catch (error) {
         console.log(error);
