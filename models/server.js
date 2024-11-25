@@ -25,6 +25,12 @@ class Server {
             neo4j: '/api/neo4j', // Ruta para operaciones específicas de Neo4j
         };
 
+        this.pathsNeo4j = {
+            deporte: '/api/neo4j/deporte',
+            equipo: '/api/neo4j/equipo',
+            pais: '/api/neo4j/pais'
+        }
+
         // Conexiones a bases de datos
         this.initDatabaseConnections();
 
@@ -38,8 +44,8 @@ class Server {
     // Método para inicializar las conexiones a las bases de datos
     async initDatabaseConnections() {
         try {
-            await this.dbConnectionMySQL();
-            await this.dbConnectionMongo();
+            //await this.dbConnectionMySQL();
+            //await this.dbConnectionMongo();
             await this.dbConnectionNeo4j(); // Conexión a Neo4j
         } catch (error) {
             console.error('Error al iniciar las conexiones:', error);
@@ -100,16 +106,19 @@ class Server {
 
     // Registro de rutas
     routes() {
-        this.app.use(this.paths.personas, require('../routes/personasRoutes'));
-        this.app.use(this.paths.usuarios, require('../routes/usuariosRoutes'));
-        this.app.use(this.paths.vehiculos, require('../routes/vehiculosRoutes'));
-        this.app.use(this.paths.prueba, require('../routes/prueba'));
-        this.app.use(this.paths.futbolistas, require('../routes/futbolistas'));
-        this.app.use(this.paths.equipos, require('../routes/equipos'));
-        this.app.use(this.paths.contrataciones, require('../routes/contrataciones'));
+        //this.app.use(this.paths.personas, require('../routes/personasRoutes'));
+        //this.app.use(this.paths.usuarios, require('../routes/usuariosRoutes'));
+        //this.app.use(this.paths.vehiculos, require('../routes/vehiculosRoutes'));
+        //this.app.use(this.paths.prueba, require('../routes/prueba'));
+        //this.app.use(this.paths.futbolistas, require('../routes/futbolistas'));
+        //this.app.use(this.paths.equipos, require('../routes/equipos'));
+        //this.app.use(this.paths.contrataciones, require('../routes/contrataciones'));
 
         // Rutas para Neo4j
-        this.app.use(this.paths.neo4j, require('../routes/neo4jRoutes').default);
+        this.app.use(this.paths, require('../routes/neo4j').default);
+        this.app.use(this.pathsNeo4j.deporte, require('../routes/neo4j/deporte'));
+        this.app.use(this.pathsNeo4j.equipo, require('../routes/neo4j/equipo'));
+        this.app.use(this.pathsNeo4j.pais, require('../routes/neo4j/pais'));
     }
 
     // Método para iniciar el servidor

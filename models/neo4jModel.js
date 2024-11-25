@@ -1,24 +1,6 @@
 
 const { getSession } = require('../database/Neo4jConnection');
 
-const createDeporte = async (deporte) => {
-  const session = getSession();
-  try {
-    const { nombre, descripcion } = deporte;
-    const query = `
-      MERGE (d:Deporte {nombre: $nombre})
-      ON CREATE SET d.descripcion = $descripcion
-      RETURN d
-    `;
-    const result = await session.run(query, { nombre, descripcion });
-    return result.records[0]?.get('d').properties;
-  } catch (error) {
-    console.error('Error al crear deporte:', error);
-    throw error;
-  } finally {
-    await session.close();
-  }
-};
 
 // Función para crear un equipo y asociarlo con un deporte
 const createEquipo = async (equipo, deporteNombre) => {
@@ -92,7 +74,6 @@ const createContrato = async (contrato, jugadorNombre, equipoNombre) => {
 
 // Exportar funciones usando CommonJS
 module.exports = {
-    createDeporte,
     createEquipo,
     createJugador,
     createContrato,

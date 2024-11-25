@@ -1,32 +1,6 @@
 const neo4jModel = require('../models/neo4jModel').default;
 
-// Crear deporte
-const addDeporte = async (req, res) => {
-    const { nombre, descripcion } = req.body;
 
-    if (!nombre || !descripcion) {
-        return res.status(400).json({
-            success: false,
-            message: 'Nombre y descripción son obligatorios para crear un deporte.',
-        });
-    }
-
-    try {
-        const deporte = await neo4jModel.createDeporte(req.body);
-        res.json({
-            success: true,
-            message: 'Deporte creado con éxito',
-            data: deporte,
-        });
-    } catch (error) {
-        console.error('Error al crear deporte:', error.message);
-        res.status(500).json({
-            success: false,
-            message: 'Error al crear deporte',
-            error: error.message,
-        });
-    }
-};
 
 // Crear equipo
 const addEquipo = async (req, res) => {
@@ -114,7 +88,6 @@ const addContrato = async (req, res) => {
 
 
 module.exports = {
-    addDeporte,
     addEquipo,
     addJugador,
     addContrato,

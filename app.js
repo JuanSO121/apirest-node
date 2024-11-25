@@ -13,14 +13,14 @@ app.use(cors());
 app.use(express.json());
 
 // Conectar a MongoDB
-(async () => {
-  try {
-    await dbMongo();
-    console.log('Conexión exitosa a MongoDB.');
-  } catch (err) {
-    console.error('Error al conectar a MongoDB:', err);
-  }
-})();
+//(async () => {
+//  try {
+//    await dbMongo();
+//    console.log('Conexión exitosa a MongoDB.');
+//  } catch (err) {
+//    console.error('Error al conectar a MongoDB:', err);
+//  }
+//})();
 
 // Conectar a Neo4j
 (async () => {
@@ -42,14 +42,21 @@ try {
     futbolistas: require('./routes/futbolistas'),
     contrataciones: require('./routes/contrataciones'),
     neo4j: require('./routes/neo4jRoutes'),
+    deporte: require('./routes/neo4j/deporte'),
+    equipo: require('./routes/neo4j/equipo'),
+    pais: require('./routes/neo4j/pais')
   };
-
+  
   app.use('/api/personas', routes.personas);
   app.use('/api/usuarios', routes.usuarios);
   app.use('/api/vehiculos', routes.vehiculos);
   app.use('/api/equipos', routes.equipos);
   app.use('/api/futbolistas', routes.futbolistas);
   app.use('/api/contrataciones', routes.contrataciones);
+
+  app.use('/api/neo4j/deporte', routes.deporte);
+  app.use('/api/neo4j/equipo', routes.equipo)
+  app.use('/api/neo4j/pais', routes.pais)
   app.use('/api/neo4j', routes.neo4j);
 } catch (err) {
   console.error('Error al cargar rutas:', err);
