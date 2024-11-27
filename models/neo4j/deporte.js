@@ -1,60 +1,60 @@
 
 const { getSession } = require('../../database/Neo4jConnection');
 
+const session = getSession();
+
 const crearDeporte = async (req, res) => {
-  const session = getSession(); // Crear sesión local para esta operación
-  const { nombre, categoria } = req.body;
-  const nombreValido = /^[a-zA-Z\s]+$/;
-  const categoriasValidas = ['individual', 'colectivo', 'mixto'];
+    const {nombre, categoria } = req.body;
+    const nombreValido = /^[a-zA-Z\s]+$/;
+    const categoriasValidas = ['individual', 'colectivo', 'mixto'];
+    try {
 
-  try {
-    if (!categoriasValidas.includes(categoria)) {
-      return res.status(400).send({ error: 'Categoría inválida. Las categorías válidas son: individual, colectivo, mixto.' });
-    }
+      if (!categoriasValidas.includes(categoria)) {
+          return res.status(400).send({ error: 'Categoría inválida. Las categorías válidas son: individual, colectivo, mixto.' });
+      }
 
-    if (!nombreValido.test(nombre)) {
-      return res.status(400).send({ error: 'El nombre del deporte solo puede contener letras y espacios.' });
-    }
+      if (!nombreValido.test(nombre)) {
+        return res.status(400).send({ error: 'El nombre del deporte solo puede contener letras y espacios.' });
+      }
 
-    // Verificar si el deporte ya existe
-    const checkDeporteQuery = `
-      MATCH (d:Deporte {nombre: $nombre})
-      RETURN d
-    `;
-    const result = await session.run(checkDeporteQuery, { nombre });
+      const checkDeporteQuery = `
+        MATCH (d:Deporte {nombre: $nombre})
+        RETURN d
+      `;
+      const result = await session.run(checkDeporteQuery, { nombre });
 
-    if (result.records.length > 0) {
-      return res.status(400).send({ error: `Ya existe un deporte con el nombre ${nombre}.` });
-    }
+      if (result.records.length > 0) {
+        return res.status(400).send({ error: `Ya existe un deporte con el nombre ${nombre}.` });
+      }
 
-    // Crear el deporte
-    const crearDeporteQuery = `
+      const crearDeporte = `
       CREATE (d:Deporte {
         nombre: $nombre,
         categoria: $categoria
       })
       RETURN d
     `;
-    const crearResult = await session.run(crearDeporteQuery, { nombre, categoria });
-
-    const creadoDeporte = crearResult.records[0].get('d').properties;
-    res.status(201).send({
-      message: 'Deporte creado correctamente',
-      data: creadoDeporte,
+    const crearresult = await session.run(crearDeporte, {
+      nombre,
+      categoria
     });
 
-  } catch (err) {
-    console.error('Error al crear el deporte:', err);
-    res.status(500).send({ error: err.message || 'No se pudo crear el deporte.' });
-  } finally {
-    await session.close(); // Cerrar la sesión al final
-  }
-};
+    const creardeporte = crearresult.records[0].get('d').properties;
+    res.status(201).send({
+      message: 'Deporte creado correctamente',
+      data: creardeporte,
+    });
 
+    } catch (err) {
+      console.error('Error al crear el deporte:', err);
+      throw new Error(err.message || 'No se pudo crear el deporte');
+    } finally {
+      await session.close();
+    }
+  }
 
 
 const MostrarDeportes = async (req, res) => {
-  const session = getSession();
     try {
       const query = `MATCH (d:Deporte) RETURN d`;
       const result = await session.run(query);
@@ -69,7 +69,6 @@ const MostrarDeportes = async (req, res) => {
 
 
 const ActualizarDeporte = async (req, res) => {
-  const session = getSession();
     try {
       const { nombre: nombreParam } = req.params; 
       const { nombre, categoria } = req.body; 
@@ -106,7 +105,6 @@ const ActualizarDeporte = async (req, res) => {
   
   
 const EliminarDeporte = async (req, res) => {
-  const session = getSession();
   try {
     const { nombre } = req.params;
 
