@@ -30,7 +30,8 @@ class Server {
             equipo: '/api/neo4j/equipo',
             pais: '/api/neo4j/pais',
             contrato: '/api/neo4j/contrato',
-            jugador: '/api/neo4j/jugador'
+            jugador: '/api/neo4j/jugador',
+            consultas: '/api/neo4j/consultas'
         }
 
         // Conexiones a bases de datos
@@ -123,6 +124,7 @@ class Server {
         this.app.use(this.pathsNeo4j.pais, require('../routes/neo4j/pais'));
         this.app.use(this.pathsNeo4j.contrato, require('../routes/neo4j/contrato'));
         this.app.use(this.pathsNeo4j.jugador, require('../routes/neo4j/jugador'));
+        this.app.use(this.pathsNeo4j.consultas, require('../routes/neo4j/consultas'));
     }
 
     // Método para iniciar el servidor

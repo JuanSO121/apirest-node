@@ -45,7 +45,8 @@ try {
     equipo: require('./routes/neo4j/equipo'),
     pais: require('./routes/neo4j/pais'),
     contrato: require('./routes/neo4j/contrato'),
-    jugador: require('./routes/neo4j/jugador')
+    jugador: require('./routes/neo4j/jugador'),
+    consultas: require('./routes/neo4j/consultas')
   };
   
   app.use('/api/personas', routes.personas);
@@ -54,12 +55,14 @@ try {
   app.use('/api/equipos', routes.equipos);
   app.use('/api/futbolistas', routes.futbolistas);
   app.use('/api/contrataciones', routes.contrataciones);
+  
 
   app.use('/api/neo4j/deporte', routes.deporte);
   app.use('/api/neo4j/equipo', routes.equipo)
   app.use('/api/neo4j/pais', routes.pais)
   app.use('/api/neo4j/jugador', routes.jugador)
   app.use('/api/neo4j/contrato', routes.contrato)
+  app.use('/api/neo4j/consultas', routes.consultas)
 } catch (err) {
   console.error('Error al cargar rutas:', err);
 }
