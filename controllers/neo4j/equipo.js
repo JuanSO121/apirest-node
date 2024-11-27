@@ -12,8 +12,8 @@ const createEquipo = async (req, res) => {
         return res.status(400).send({ error: 'Faltan campos obligatorios' });
       }
 
-      if (!/^[a-zA-Z0-9 ]+$/.test(nombre)) {
-        return res.status(400).send({ error: 'El nombre del equipo solo debe contener letras, números y espacios' });
+      if (!/^[a-zA-Z ]+$/.test(nombre)) {
+        return res.status(400).send({ error: 'El nombre del equipo solo debe contener letras y espacios' });
       }
   
       // Verificar si ya existe un equipo con el mismo nombre

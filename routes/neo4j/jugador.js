@@ -4,7 +4,7 @@ const router = express.Router();
 
 router.post('/', crearJugador);
 router.get('/', obtenerJugadores);
-router.put('/:nombre', actualizarJugador);
-router.delete('/:nombre', eliminarJugador);
+router.put('/:id', actualizarJugador);
+router.delete('/:id', eliminarJugador);
 
 module.exports = router;

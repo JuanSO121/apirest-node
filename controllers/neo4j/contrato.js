@@ -1,4 +1,5 @@
 const { getSession } = require('../../database/Neo4jConnection');
+const { v4: uuidv4 } = require('uuid');
 
 const verificarExistencia = async (tx, label, propiedad, valor) => {
   const query = `MATCH (n:${label} {${propiedad}: $valor}) RETURN n`;
@@ -26,30 +27,34 @@ const crearContrato = async (req, res) => {
   const tx = session.beginTransaction();
 
   try {
+    // Verificar si el jugador existe
     if (!(await verificarExistencia(tx, 'Jugador', 'id', jugador))) {
       await tx.rollback();
       return res.status(404).send({ error: 'Jugador no encontrado.' });
     }
 
+    // Verificar si el equipo existe
     if (!(await verificarExistencia(tx, 'Equipo', 'nombre', equipo))) {
       await tx.rollback();
       return res.status(404).send({ error: 'Equipo no encontrado.' });
     }
 
+    // Crear el nodo Contrato
+    const contratoId = uuidv4();
     const contratoQuery = `
-      MATCH (j:Jugador {id: $jugador}), (e:Equipo {nombre: $equipo})
-      CREATE (j)-[:TIENE_CONTRATO {
+      CREATE (c:Contrato {
+        id: $id,
         salario: $salario,
         bonos: $bonos,
         tipo_contrato: $tipo_contrato,
         condiciones_especiales: $condiciones_especiales,
         inicio: $fecha_inicio,
         fin: $fecha_fin
-      }]->(e)
+      })
+      RETURN c
     `;
-    await tx.run(contratoQuery, {
-      jugador,
-      equipo,
+    const contratoResult = await tx.run(contratoQuery, {
+      id: contratoId,
       salario,
       bonos,
       tipo_contrato,
@@ -58,8 +63,19 @@ const crearContrato = async (req, res) => {
       fecha_fin,
     });
 
+    // Relacionar el contrato con el jugador y el equipo
+    const relacionQuery = `
+      MATCH (j:Jugador {id: $jugador}), (e:Equipo {nombre: $equipo}), (c:Contrato {id: $id})
+      CREATE (j)-[:TIENE_CONTRATO]->(c)-[:PERTENECE_A]->(e)
+    `;
+    await tx.run(relacionQuery, { jugador, equipo, id: contratoId });
+
     await tx.commit();
-    res.status(201).send({ message: 'Contrato creado exitosamente.' });
+
+    res.status(201).send({
+      message: 'Contrato creado exitosamente.',
+      data: contratoResult.records[0].get('c').properties,
+    });
   } catch (error) {
     console.error('Error al crear contrato:', error);
     await tx.rollback();
@@ -68,6 +84,7 @@ const crearContrato = async (req, res) => {
     await session.close();
   }
 };
+
 
 const obtenerContratos = async (req, res) => {
   const session = getSession();
